@@ -1,7 +1,7 @@
 #![no_std]
-#![allow(ctypes)]
 
-enum Color {
+#[derive(Copy, Clone)]
+pub enum Color {
     Black      = 0,
     Blue       = 1,
     Green      = 2,
@@ -20,18 +20,13 @@ enum Color {
     White      = 15,
 }
 
-enum Option<T> {
-    None,
-    Some(T)
-}
-
 struct IntRange {
-    cur: int,
-    max: int
+    cur: u32,
+    max: u32
 }
 
 impl IntRange {
-    fn next(&mut self) -> Option<int> {
+    fn next(&mut self) -> Option<u32> {
         if self.cur < self.max {
             self.cur += 1;
             Some(self.cur - 1)
@@ -41,20 +36,29 @@ impl IntRange {
     }
 }
 
-fn range(lo: int, hi: int) -> IntRange {
+fn range(lo: u32, hi: u32) -> IntRange {
     IntRange { cur: lo, max: hi }
 }
 
+const VGA_WIDTH: u16 = 20;
+const VGA_ADDRESS: u32 = 0xb8000;
+
 fn clear_screen(background: Color) {
-    for i in range(0, 80 * 25) {
-        unsafe {
-            *((0xb8000 + i * 2) as *mut u16) = (background as u16) << 12;
+    let mut r = range(0, 80 * 25);
+    loop{
+        match r.next() {
+            Some(x) => {
+                unsafe {
+                    *((VGA_ADDRESS + x * 2) as *mut u16) = (background as u16) << 12;
+                }
+            },
+            None =>{break}
         }
     }
 }
 
 #[no_mangle]
-#[no_split_stack]
+//  #[no_split_stack]
 pub fn main() {
-    clear_screen(LightRed);
+    clear_screen(Color::LightRed);
 }
