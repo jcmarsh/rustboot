@@ -20,10 +20,12 @@ pub enum Color {
     White      = 15,
 }
 
-//enum Option<T> {
-//    None,
-//    Some(T)
-//}
+struct TextCursor {
+    x: u16,
+    y: u16,
+    fg_color: Color,
+    bg_color: Color
+}
 
 struct IntRange {
     cur: u32,
@@ -45,7 +47,8 @@ fn range(lo: u32, hi: u32) -> IntRange {
     IntRange { cur: lo, max: hi }
 }
 
-const VGA_WIDTH: u16 = 20;
+const VGA_WIDTH: u16 = 80; // In Characters
+const VGA_HEIGHT: u16 = 25;
 const VGA_ADDRESS: u32 = 0xb8000;
 
 fn clear_screen(background: Color) {
@@ -68,26 +71,52 @@ pub fn main() {
     clear_screen(Color::LightRed);
     //clear_screen(Color::LightGreen);
 
-    // Say Hello.
-    putchar(10,10,72);
-    putchar(11,10,69);
-    putchar(12,10,76);
-    putchar(13,10,76);
-    putchar(14,10,79);
+    let mut cursor = TextCursor{
+        x:0,
+        y:0,
+        fg_color:Color::White,
+        bg_color:Color::DarkGray
+    };
+
+    // Say Hello
+    putchar(&cursor, 72);
+    cursor.x = cursor.x+1;
+    putchar(&cursor, 69);
+    cursor.x = cursor.x+1;
+    putchar(&cursor, 76);
+    cursor.x = cursor.x+1;
+    putchar(&cursor, 76);
+    cursor.x = cursor.x+1;
+    putchar(&cursor, 79);
+
+    // New Line
+    cursor.x = 0;
+    cursor.y = cursor.y + 1;
+
+    // Say World
+    putchar(&cursor, 87);
+    cursor.x = cursor.x+1;
+    putchar(&cursor, 79);
+    cursor.x = cursor.x+1;
+    putchar(&cursor, 82);
+    cursor.x = cursor.x+1;
+    putchar(&cursor, 76);
+    cursor.x = cursor.x+1;
+    putchar(&cursor, 68);
 }
 
 // Copying code from Julia Evans: https://jvns.ca/blog/2014/03/12/the-rust-os-story/
-pub fn putchar(x: u16, y:u16, c:u8) {
-    let idx : u32 = (y * VGA_WIDTH * 2 + x * 2).into();
-    let fg_color = Color::White;
-    let bg_color = Color::DarkGray;
+fn putchar(cursor:&TextCursor, c:u8) {
+    let idx : u32 = (cursor.y * VGA_WIDTH * 2 + cursor.x * 2).into();
+    let fg_color = cursor.fg_color;
+    let bg_color = cursor.bg_color;
 
     unsafe {
         *((VGA_ADDRESS + idx) as *mut u16) = make_vgaentry(c, fg_color, bg_color);
     }
 }
 
-pub fn make_vgaentry(c: u8, fg: Color, bg: Color) -> u16 {
+fn make_vgaentry(c: u8, fg: Color, bg: Color) -> u16 {
     let color = fg as u16 | ((bg as u16) << 4);
     return c as u16 | (color << 8);
 }
