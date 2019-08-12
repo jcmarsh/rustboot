@@ -79,40 +79,39 @@ pub fn main() {
     };
 
     // Say Hello
-    putchar(&cursor, 72);
-    cursor.x = cursor.x+1;
-    putchar(&cursor, 69);
-    cursor.x = cursor.x+1;
-    putchar(&cursor, 76);
-    cursor.x = cursor.x+1;
-    putchar(&cursor, 76);
-    cursor.x = cursor.x+1;
-    putchar(&cursor, 79);
+    cursor = println(cursor, "Hello");
+    // Say World
+    cursor = println(cursor, "World");
+    cursor = println(cursor, "\nThis is\na test.");
+}
 
-    // New Line
+fn println(mut cursor:TextCursor, text:&str) -> TextCursor {
+    let bytes : &[u8]= text.as_bytes();
+
+    for b in bytes {
+        if b == &("\n".as_bytes()[0]) {
+            cursor.x = 0;
+            cursor.y = cursor.y + 1;
+        } else {
+            putchar(&cursor, b);
+            cursor.x = cursor.x + 1;
+        }
+    }
+
     cursor.x = 0;
     cursor.y = cursor.y + 1;
 
-    // Say World
-    putchar(&cursor, 87);
-    cursor.x = cursor.x+1;
-    putchar(&cursor, 79);
-    cursor.x = cursor.x+1;
-    putchar(&cursor, 82);
-    cursor.x = cursor.x+1;
-    putchar(&cursor, 76);
-    cursor.x = cursor.x+1;
-    putchar(&cursor, 68);
+    cursor
 }
 
 // Copying code from Julia Evans: https://jvns.ca/blog/2014/03/12/the-rust-os-story/
-fn putchar(cursor:&TextCursor, c:u8) {
+fn putchar(cursor:&TextCursor, c:&u8) {
     let idx : u32 = (cursor.y * VGA_WIDTH * 2 + cursor.x * 2).into();
     let fg_color = cursor.fg_color;
     let bg_color = cursor.bg_color;
 
     unsafe {
-        *((VGA_ADDRESS + idx) as *mut u16) = make_vgaentry(c, fg_color, bg_color);
+        *((VGA_ADDRESS + idx) as *mut u16) = make_vgaentry(*c, fg_color, bg_color);
     }
 }
 
