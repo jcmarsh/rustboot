@@ -22,7 +22,7 @@ boot:
     ; load protected mode GDT and a null IDT (we don't need interrupts)
     cli
     lgdt [gdtr]
-    lidt [idtr]
+    ; lidt [idtr]
     ; set protected mode bit of cr0
     mov eax, cr0
     or eax, 1
@@ -62,9 +62,9 @@ gdtr:
     dw (gdt_end - gdt) + 1  ; size
     dd gdt                  ; offset
 
-idtr:
-    dw 0
-    dd 0
+;idtr:
+;   dw 0
+;   dd 0
 
 gdt:
     ; null entry
